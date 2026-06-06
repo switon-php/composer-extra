@@ -1,0 +1,63 @@
+{
+    "name": "switon/composer-extra",
+    "description": "Cached Composer extra metadata reader for fast framework discovery at runtime for Switon Framework",
+    "type": "composer-plugin",
+    "keywords": [
+        "switon",
+        "composer",
+        "metadata",
+        "discovery",
+        "runtime"
+    ],
+    "homepage": "https://github.com/switon-php/composer-extra",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "switon",
+            "email": "admin@switon.dev"
+        }
+    ],
+    "support": {
+        "source": "https://github.com/switon-php/composer-extra",
+        "issues": "https://github.com/switon-php/composer-extra/issues",
+        "docs": "https://docs.switon.dev/latest/composer-extra"
+    },
+    "require": {
+        "php": ">=8.3",
+        "ext-json": "*",
+        "composer-plugin-api": "^2.0",
+        "switon/core": "^1.0"
+    },
+    "require-dev": {
+        "composer/composer": "^2.0",
+        "phpunit/phpunit": "^12.0",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/extension-installer": "^1.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "switon/composer-extra": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Switon\\ComposerExtra\\": "src/"
+        }
+    },
+    "extra": {
+        "class": "Switon\\ComposerExtra\\Plugin",
+        "branch-alias": {
+            "dev-dev": "1.0.x-dev"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Switon\\ComposerExtra\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "phpstan": "@php vendor/bin/phpstan analyse",
+        "test": "@php vendor/bin/phpunit --configuration tests/phpunit.xml.dist --testsuite=all --display-deprecations --display-phpunit-notices"
+    }
+}

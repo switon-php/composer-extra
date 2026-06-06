@@ -1,0 +1,9 @@
+parameters:
+    level: 7
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    paths:
+        - src
+    tmpDir: tests/.phpstan.cache
+    # InstalledVersions PHPDoc omits optional keys such as extra/install_path.
+    treatPhpDocTypesAsCertain: false

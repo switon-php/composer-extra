@@ -16,7 +16,7 @@ use RuntimeException;
 use Switon\ComposerExtra\ComposerExtraPluginInterface;
 use Switon\ComposerExtra\Exception\CacheWriteException;
 use Switon\ComposerExtra\Plugin;
-use Switon\ComposerExtra\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 use function bin2hex;
 use function chmod;
@@ -467,7 +467,7 @@ class PluginTest extends TestCase
         }
     }
 
-    private function removeDirectory(string $directory): void
+    protected function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
             return;
@@ -494,7 +494,7 @@ class PluginTest extends TestCase
         rmdir($directory);
     }
 
-    private function makeComposer(string $vendorDir): Composer
+    protected function makeComposer(string $vendorDir): Composer
     {
         $baseDir = dirname($vendorDir);
         $config = new Config(false, $baseDir);
@@ -505,7 +505,7 @@ class PluginTest extends TestCase
         return $composer;
     }
 
-    private function makeEvent(Composer $composer, IOInterface $io): Event
+    protected function makeEvent(Composer $composer, IOInterface $io): Event
     {
         return new Event('post-install-cmd', $composer, $io);
     }

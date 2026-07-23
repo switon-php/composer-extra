@@ -27,14 +27,13 @@ use function is_string;
  * Road-signs:
  * - cache file: `vendor/switon/composer-extra.json`
  * - lazy load on first read
- * - discovery hooks: providers, commands, listeners, tasks, jobs
+ * - discovery hooks: providers, commands, listeners, tasks, jobs, tools
  * - missing cache raises `ComposerExtraNotFoundException`
  * - plugin-generated cache is the only runtime source
  *
  * Core rules:
  * - reads the plugin-generated cache, not live `composer.json`
- * - package order is preserved during class collection
- * - duplicate string values are preserved in package order
+ * - package order is preserved; int keys append, string keys overwrite
  *
  * @see \Switon\ComposerExtra\Plugin
  * @see \Switon\Kernel\ServiceBootstrapper::bootstrap()
@@ -149,18 +148,15 @@ class ComposerExtra implements ComposerExtraInterface
     }
 
     /**
-     * Collects string values from the leaf at a dot-separated path under each package root.
+     * Merge string leaves at a dot path under each package root.
      *
-     * The leaf must be either a non-empty string or an array whose values are non-empty strings
-     * (indexed list or string-keyed map; keys are ignored). Non-string values (including nested arrays) are
-     * skipped. Other leaf types are ignored.
-     *
-     * Path is relative to each value returned by {@see all()} (per-package merged extra). Empty segments from
-     * consecutive dots are ignored. Packages are merged in iteration order and values are appended as-is.
+     * Walks each package leaf and branches on key type only:
+     * int key → append; non-empty string key → assign (later package wins).
+     * Bare non-empty string leaf appends. Non-string values are skipped.
      *
      * @param string $path Dot-separated keys, e.g. <code>switon.listeners</code>
      *
-     * @return list<string>
+     * @return array<int|string, string>
      */
     public function collect(string $path): array
     {
@@ -189,11 +185,17 @@ class ComposerExtra implements ComposerExtraInterface
                 continue;
             }
 
-            foreach ($leaf as $value) {
+            foreach ($leaf as $key => $value) {
                 if (!is_string($value) || $value === '') {
                     continue;
                 }
-                $out[] = $value;
+                if (is_int($key)) {
+                    $out[] = $value;
+                    continue;
+                }
+                if (is_string($key) && $key !== '') {
+                    $out[$key] = $value;
+                }
             }
         }
 

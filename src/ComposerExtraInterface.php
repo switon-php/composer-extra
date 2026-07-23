@@ -10,7 +10,8 @@ namespace Switon\ComposerExtra;
  * Use when framework packages need package-published discovery metadata at runtime.
  *
  * Road-signs:
- * - <code>collect()</code> reads discovery lists under <code>extra.switon.*</code>
+ * - <code>collect()</code> merges discovery leaves under <code>extra.switon.*</code>
+ *   (int keys append; string keys map; later packages win on string keys)
  * - <code>all()</code> returns the validated per-package extra map
  * - <code>health()</code> reports cache status without throwing
  * - runtime reads only; cache generation lives in the Composer plugin
@@ -45,11 +46,15 @@ interface ComposerExtraInterface
     public function health(): array;
 
     /**
-     * Collect string values from the leaf at a dot-separated path under each package root.
+     * Merge string leaves at a dot path under each package root.
      *
-     * @param string $path Dot-separated keys, e.g. <code>switon.listeners</code>
+     * For each array leaf entry: int key → append value; non-empty string key →
+     * <code>$out[$key] = $value</code> (later packages overwrite). A bare non-empty
+     * string leaf appends like a list item.
      *
-     * @return list<string>
+     * @param string $path Dot-separated keys, e.g. <code>switon.listeners</code> / <code>switon.tools</code>
+     *
+     * @return array<int|string, string>
      */
     public function collect(string $path): array;
 }

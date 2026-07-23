@@ -7,7 +7,7 @@ namespace Switon\ComposerExtra\Tests\Unit;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Switon\ComposerExtra\ComposerExtra;
 use Switon\ComposerExtra\Exception\ComposerExtraNotFoundException;
-use Switon\ComposerExtra\Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 use Switon\Core\Exception\RuntimeException;
 use Switon\Core\Json;
 
@@ -25,7 +25,6 @@ class ComposerExtraTest extends TestCase
 
     protected function setUp(): void
     {
-        parent::setUp();
 
         // Create temporary directory for test files
         $this->tempDir = sys_get_temp_dir() . '/composer-extra-test-' . uniqid('', true);
@@ -326,7 +325,10 @@ class ComposerExtraTest extends TestCase
 
         $composerExtra = new ComposerExtra($this->cacheFile);
 
-        $this->assertSame(['App\\A', 'App\\B'], $composerExtra->collect('switon.listeners'));
+        $this->assertSame(
+            ['alias-a' => 'App\\A', 'alias-b' => 'App\\B'],
+            $composerExtra->collect('switon.listeners'),
+        );
     }
 
     public function testGetClassesSkipsNestedArrayValues(): void
@@ -504,6 +506,29 @@ class ComposerExtraTest extends TestCase
         } finally {
             @chmod($path, 0644);
         }
+    }
+
+    public function testCollectMixesListAppendAndStringKeyedAssign(): void
+    {
+        file_put_contents($this->cacheFile, Json::stringify([
+            'switon/a' => ['switon' => ['items' => [
+                'Switon\\A\\ListOne',
+                'named' => 'Switon\\A\\Named',
+            ]]],
+            'switon/b' => ['switon' => ['items' => [
+                'Switon\\B\\ListTwo',
+                'named' => 'Switon\\B\\NamedOverride',
+            ]]],
+        ]));
+
+        $this->assertSame(
+            [
+                'Switon\\A\\ListOne',
+                'named' => 'Switon\\B\\NamedOverride',
+                'Switon\\B\\ListTwo',
+            ],
+            (new ComposerExtra($this->cacheFile))->collect('switon.items'),
+        );
     }
 
     public function testAllOverlaysMissingPathPackageExtraFromLiveComposerJson(): void

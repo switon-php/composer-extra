@@ -8,7 +8,7 @@ Switon's Composer plugin and runtime reader for cached `extra` metadata.
 
 - **Cached package metadata:** composer install and update keep one shared metadata cache current.
 - **Runtime access:** `ComposerExtraInterface` reads discovery data without extra parsing.
-- **Discovery support:** `extra.switon.*` can feed providers, commands, listeners, tasks, and jobs.
+- **Discovery support:** `extra.switon.*` feeds providers, commands, listeners, tasks, jobs, and tools via `collect()` (int keys append; string keys map).
 - **Automatic refresh:** the Composer plugin keeps the cache fresh.
 - **Safe health checks:** cache status can be checked without throwing.
 

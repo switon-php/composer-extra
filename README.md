@@ -40,7 +40,7 @@ final class PackageRegistry
 }
 ```
 
-Docs: https://docs.switon.dev/latest/composer-extra
+Docs: https://github.com/switon-php/composer-extra/blob/main/docs/README.md
 
 ## License
 

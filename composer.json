@@ -20,7 +20,7 @@
     "support": {
         "source": "https://github.com/switon-php/composer-extra",
         "issues": "https://github.com/switon-php/composer-extra/issues",
-        "docs": "https://docs.switon.dev/latest/composer-extra"
+        "docs": "https://github.com/switon-php/composer-extra/blob/main/docs/README.md"
     },
     "require": {
         "php": ">=8.3",

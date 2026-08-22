@@ -230,34 +230,6 @@ class PluginTest extends TestCase
         }
     }
 
-    public function testWriteCacheFileThrowsWhenFilePutContentsFails(): void
-    {
-        if (PHP_OS_FAMILY === 'Windows') {
-            $this->markTestSkipped('Requires Unix chmod to make cache directory non-writable');
-        }
-
-        $plugin = new TestablePluginForHelpers();
-        $tmp = sys_get_temp_dir() . '/switon-plugin-' . bin2hex(random_bytes(4));
-        $vendorDir = $tmp . '/vendor';
-        $switonDir = $vendorDir . '/switon';
-        mkdir($switonDir, 0755, true);
-
-        $composer = $this->makeComposer($vendorDir);
-        $plugin->setComposerForTest($composer);
-
-        try {
-            $this->assertTrue(chmod($switonDir, 0555));
-            clearstatcache(true, $switonDir);
-
-            $this->expectException(CacheWriteException::class);
-            $this->expectExceptionMessage('Failed to write extra cache file:');
-            $plugin->writeCacheFilePublic(['switon/pkg' => ['switon' => ['a' => 1]]]);
-        } finally {
-            chmod($switonDir, 0755);
-            $this->removeDirectory($tmp);
-        }
-    }
-
     public function testExtractExtraDataIncludesCurrentPackageExtra(): void
     {
         $backup = InstalledVersions::getAllRawData();

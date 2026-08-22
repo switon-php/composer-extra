@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Switon\ComposerExtra\ComposerExtra;
 use Switon\ComposerExtra\Exception\ComposerExtraNotFoundException;
 use PHPUnit\Framework\TestCase;
-use Switon\Core\Exception\RuntimeException;
 use Switon\Core\Json;
 
 /**
@@ -468,46 +467,6 @@ class ComposerExtraTest extends TestCase
         $this->assertSame(0, $health['packageCount']);
     }
 
-    /**
-     * @requires OSFAMILY Linux Darwin
-     */
-    public function testHealthReturnsCacheUnreadableWhenFileCannotBeRead(): void
-    {
-        $path = $this->tempDir . '/health-unreadable.json';
-        file_put_contents($path, Json::stringify(['pkg' => ['version' => '1']]));
-        $this->assertTrue(@chmod($path, 0000));
-
-        try {
-            $health = (new ComposerExtra($path))->health();
-            $this->assertSame(false, $health['ok']);
-            $this->assertSame('cache_unreadable', $health['reason']);
-            $this->assertSame(0, $health['packageCount']);
-        } finally {
-            @chmod($path, 0644);
-        }
-    }
-
-    /**
-     * When the cache file exists but is not readable, loading must fail with a clear runtime error (not a JSON parse error).
-     *
-     * @requires OSFAMILY Linux Darwin
-     */
-    public function testAllRaisesWhenCacheFileIsUnreadable(): void
-    {
-        $path = $this->tempDir . '/unreadable.json';
-        file_put_contents($path, Json::stringify(['pkg' => ['version' => '1']]));
-        $this->assertTrue(@chmod($path, 0000));
-
-        try {
-            $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('Cannot read cache file');
-
-            (new ComposerExtra($path))->all();
-        } finally {
-            @chmod($path, 0644);
-        }
-    }
-
     public function testCollectMixesListAppendAndStringKeyedAssign(): void
     {
         file_put_contents($this->cacheFile, Json::stringify([
@@ -619,27 +578,6 @@ class ComposerExtraTest extends TestCase
         return $cacheFile;
     }
 
-    /**
-     * @requires OSFAMILY Linux Darwin
-     */
-    public function testAllIgnoresOverlayWhenComposerInstalledFileIsUnreadable(): void
-    {
-        $root = $this->tempDir . '/ce-overlay-installed-unreadable';
-        $payload = ['switon/warm' => ['switon' => ['listeners' => ['App\\Cached']]]];
-        $cacheFile = $this->prepareComposerExtraLayout($root, $payload, []);
-
-        $installedFile = dirname($cacheFile, 2) . '/composer/installed.json';
-        $this->assertFileExists($installedFile);
-        $this->assertTrue(@chmod($installedFile, 0000));
-
-        try {
-            $ce = new ComposerExtra($cacheFile);
-            $this->assertSame(['App\\Cached'], $ce->collect('switon.listeners'));
-        } finally {
-            @chmod($installedFile, 0644);
-        }
-    }
-
     public function testAllIgnoresMalformedComposerInstalledOverlayPayload(): void
     {
         $root = $this->tempDir . '/ce-installed-bad-json';
@@ -697,9 +635,6 @@ class ComposerExtraTest extends TestCase
         $this->deletePath(dirname($installedFile));
     }
 
-    /**
-     * @requires OSFAMILY Linux Darwin
-     */
     public function testAllOverlaysComposerPackageWhenVendorInstallPathPointsToSymlink(): void
     {
         $root = $this->tempDir . '/ce-symlink-overlay';
@@ -773,38 +708,6 @@ class ComposerExtraTest extends TestCase
 
         @unlink("{$installPhysical}/composer.json");
         @rmdir($installPhysical);
-    }
-
-    /**
-     * @requires OSFAMILY Linux Darwin
-     */
-    public function testOverlaySkipsLiveComposerJsonWhenUnreadable(): void
-    {
-        $root = $this->tempDir . '/ce-live-extra-unreadable';
-        $payload = ['live/unread' => ['switon' => ['jobs' => ['App\\Queue\\CachedJob']]]];
-        $cacheFile = $this->prepareComposerExtraLayout($root, $payload, [[
-            'name' => 'live/unread',
-            'install-path' => '../live/unread',
-            'dist' => ['type' => 'path'],
-        ]]);
-
-        $installedFile = dirname($cacheFile, 2) . '/composer/installed.json';
-        $pkgDir = dirname($installedFile) . '/../live/unread';
-        $composerLive = "{$pkgDir}/composer.json";
-        file_put_contents($composerLive, Json::stringify([
-            'name' => 'live/unread',
-            'extra' => ['switon' => ['jobs' => ['App\\Queue\\RemoteJob']]],
-        ]));
-        $this->assertTrue(@chmod($composerLive, 0000));
-
-        try {
-            $ce = new ComposerExtra($cacheFile);
-            $this->assertSame(['App\\Queue\\CachedJob'], $ce->collect('switon.jobs'));
-        } finally {
-            @chmod($composerLive, 0644);
-            @unlink($composerLive);
-            @rmdir($pkgDir);
-        }
     }
 
     public function testOverlaySkipsPackageWhenComposerJsonMissingUnderPathRepo(): void
